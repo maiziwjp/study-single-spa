@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- <style>
+        p {
+            color: green !important;
+        }
+    </style> -->
+</head>
+<body>
+    <div>
+        <p>hello world</p>
+        <div id="shadow"></div>
+    </div>
+    <script>
+        // 如果你的子项目没有元素挂载到document上的话，shadow可以实现真正意义上的隔离
+        let shadowDOM = shadow.attachShadow({ mode: 'closed' }); // 外界无法访问 shadow dom
+        let pElm = document.createElement('p');
+        pElm.innerHTML = 'hello jupeng';
+        let styleEle = document.createElement('style');
+        styleEle.textContent = `
+            p{ color: red; }
+        `;
+        shadowDOM.appendChild(styleEle);
+        shadowDOM.appendChild(pElm);
+
+        // 将其挂在在document上的话styleEle就不会对其生效了
+        // 而且父元素上的样式设置优先级高的话子应用设置的样式也不会生效
+        // document.body.appendChild(pElm);
+    </script>
+</body>
+</html>

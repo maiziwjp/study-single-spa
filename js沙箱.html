@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+        // 如果应用加载，刚开始加载A应用，那么window上面可能会有一个a属性，如果切换到B应用，那么B应用可以
+        // 访问到window.a，这样的话啊就会造成污染
+        // JS沙箱就是单应用切换，创建一个干净的环境给这个子应用使用，当切换的时候，可以选择丢弃属性，再次切换回
+        // 上一个子应用的时候恢复属性
+
+        // 快照沙箱：1年前拍一张，现在拍一张，将区别保存起来，切换其他子应用的时候，回到一年前，
+        //          当切换回此子应用的时候，根据区别再复原
+        class SnapshotSandbox {
+            constructor(){
+                this.proxy = window; // window属性
+                this.modifyPropsMap = {}; // 记录在window上的修改
+                this.active();
+            }
+            active(){ // 激活沙箱
+                this.windowSnapshot = {}; // 拍照：把window上的最开始的属性都保存一下
+                for(const prop in window){
+                    if(window.hasOwnProperty(prop)){
+                        this.windowSnapshot[prop] = window[prop];
+                    }
+                }
+                Object.keys(this.modifyPropsMap).forEach(p => { // 激活的时候把变化的部分再还原回去
+                    window[p] = this.modifyPropsMap[p];
+                })
+            }
+            inactive(){ // 丢弃沙箱
+                for(const prop in window){
+                    if(window.hasOwnProperty(prop)){
+                        if(window[prop] !== this.windowSnapshot[prop]){ // 把变化了的属性还原回去
+                            window[prop] = this.windowSnapshot[prop];
+                        }
+                    }
+                }
+            }
+        }
+        let shandbox = new SnapshotSandbox();
+        ((window) => {
+            window.a = 1;
+            console.log(window.a); // 1
+            shandbox.inactive();
+            console.log(window.a); // undefined
+            shandbox.active();
+            console.log(window.a); // 1
+        })(shandbox.proxy); // shandbox.prox就是window
+        // 如果是多个子应用就不能使用这种方式了，可以使用ES6的proxy
+        // 代理沙箱可以实现多应用沙箱，把不同的应用用不同的代理来处理
+    </script>
+</body>
+</html>
